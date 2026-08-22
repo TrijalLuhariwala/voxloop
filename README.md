@@ -21,44 +21,40 @@ VoxLoop is a real-time, multi-agent voice assistant platform powered by **FastAP
 ## 🏗️ Architecture & Data Flow
 
 ```mermaid
-flowchart TD
-    subgraph Client ["Frontend (Next.js 15 / React 19)"]
-        UI["Dual-Column Layout UI"]
-        Mic["Browser Speech Recorder (MediaRecorder)"]
-        ChatLog["Right-Side Chat History Panel"]
+graph LR
+    classDef client fill:#00f2fe15,stroke:#00f2fe,stroke-width:2px,color:#fff;
+    classDef server fill:#141e30,stroke:#4bc6b9,stroke-width:2px,color:#fff;
+    classDef agent fill:#ff7e5f15,stroke:#ff7e5f,stroke-width:2px,color:#fff;
+    classDef llm fill:#9d4edd15,stroke:#9d4edd,stroke-width:2px,color:#fff;
+
+    subgraph ClientStage ["1. Client Interaction"]
+        A["🎙️ User Microphone"]:::client -->|WebM Audio| B["⚡ WebSocket Handler"]:::server
+        H["💬 Chat History & Scorecard"]:::client
+        I["🔊 Audio Player"]:::client
     end
 
-    subgraph Server ["Backend (FastAPI WebSockets)"]
-        WS["/ws/voice-turn Socket Handler"]
-        STT["Faster-Whisper (Local STT)"]
-        TTS["pyttsx3 (Local TTS)"]
-        DB[(SQLite / voxloop.db)]
+    subgraph VoiceEngine ["2. Speech & Storage"]
+        B -->|Audio Bytes| C["📝 Faster-Whisper (STT)"]:::server
+        F["🔊 pyttsx3 (TTS Engine)"]:::server -->|WAV Audio| I
+        G[("💾 SQLite Database")]:::server <-->|History & Memory| B
     end
 
-    subgraph Graph ["LangGraph Multi-Agent Engine"]
-        Draft["Agent 1: Draft Response"]
-        Critique["Agent 2: Critic Review & Scorecard"]
-        Improve["Agent 1: Improved Synthesis"]
+    subgraph AgentLoop ["3. LangGraph Multi-Agent Flow"]
+        C -->|Transcript| D1["🤖 Draft Response Agent"]:::agent
+        D1 -->|Draft Text| D2["⚖️ Critic Review Agent"]:::agent
+        D2 -->|Scorecard & Critique| D3["✨ Improved Synthesis Agent"]:::agent
     end
 
-    subgraph LLM ["LLM Provider"]
-        Mistral["Mistral AI API"]
+    subgraph AIProvider ["4. LLM Backend"]
+        D2 <-->|JSON Schema Grading| E["🧠 Mistral AI API"]:::llm
+        D3 <-->|Response Rewrite| E
     end
 
-    Mic -- "WebM Audio Bytes (Base64)" --> WS
-    WS --> STT
-    STT -- "Transcript Text" --> Draft
-    DB -- "Prior Session History" --> Draft
-    Draft -- "Draft Text" --> Critique
-    Critique <-->|JSON Structured Schema| Mistral
-    Critique -- "Critique JSON & Scores" --> Improve
-    Improve <--> Mistral
-    Improve -- "Final Improved Response" --> TTS
-    TTS -- "Synthesized WAV Audio URL" --> WS
-    Improve -- "Save Turn & Memory" --> DB
-    WS -- "VoiceTurnResponse Payload" --> UI
-    WS -- "Update Chat Log" --> ChatLog
+    D3 -->|Improved Text| F
+    D3 -->|Turn Payload| B
+    B -->|WebSocket Event| H
 ```
+
 
 ---
 
