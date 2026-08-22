@@ -43,11 +43,16 @@ async def transcribe_audio(audio_path: Path) -> str:
 
 def _synthesize_sync(text: str) -> str:
     output_path = _audio_root() / f"{uuid4()}.wav"
-    engine = pyttsx3.init()
-    engine.setProperty("rate", 180)
-    engine.save_to_file(text, str(output_path))
-    engine.runAndWait()
-    return output_path.name
+    try:
+        engine = pyttsx3.init()
+        engine.setProperty("rate", 180)
+        engine.save_to_file(text, str(output_path))
+        engine.runAndWait()
+        return output_path.name
+    except Exception as exc:
+        print(f"TTS synthesis warning: {exc}")
+        return ""
+
 
 
 async def synthesize_speech(text: str) -> str:

@@ -218,7 +218,7 @@ async def voice_turn_socket(websocket: WebSocket) -> None:
             original_response=result["original_response"],
             critique=critique,
             improved_response=result["improved_response"],
-            tts_audio_url=f"http://127.0.0.1:8000/generated-audio/{audio_file_name}",
+            tts_audio_url=f"/generated-audio/{audio_file_name}" if audio_file_name else "",
             memory=updated_memory,
         )
         await websocket.send_json({"type": "result", "payload": response.model_dump()})
