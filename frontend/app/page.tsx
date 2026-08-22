@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  API_BASE_URL,
   openVoiceSocket,
   resetSession,
   type VoiceSocketMessage,
   type VoiceTurnResponse
 } from "../lib/api";
+
 
 function createNewSessionId(): string {
   return "session-" + Math.random().toString(36).substring(2, 10) + "-" + Date.now().toString(36);
@@ -113,13 +115,18 @@ export default function Home() {
         setChatHistory(message.payload.memory || []);
         setStatus("Turn completed.");
         setError(null);
-        if (audioRef.current && message.payload.tts_audio_url) {
-          audioRef.current.src = message.payload.tts_audio_url;
-          void audioRef.current.play().catch(() => null);
+        if (message.payload.tts_audio_url) {
+          const rawUrl = message.payload.tts_audio_url;
+          const fullAudioUrl = rawUrl.startsWith("http") ? rawUrl : `${API_BASE_URL}${rawUrl}`;
+          if (audioRef.current) {
+            audioRef.current.src = fullAudioUrl;
+            void audioRef.current.play().catch(() => null);
+          }
         }
         socket.close();
         return;
       }
+
       if (message.type === "error") {
         setError(message.message);
         setStatus("Workflow failed.");
@@ -254,9 +261,23 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="card-body">{result.improved_response}</div>
+                    {result.tts_audio_url ? (
+                      <div style={{ marginTop: 12 }}>
+                        <audio
+                          controls
+                          src={
+                            result.tts_audio_url.startsWith("http")
+                              ? result.tts_audio_url
+                              : `${API_BASE_URL}${result.tts_audio_url}`
+                          }
+                          style={{ width: "100%", height: 36, borderRadius: 8 }}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </section>
+
 
               {/* Scorecard Progress Gauges */}
               <section className="panel">
