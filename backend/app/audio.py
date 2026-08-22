@@ -42,27 +42,31 @@ async def transcribe_audio(audio_path: Path) -> str:
 
 
 def _synthesize_sync(text: str) -> str:
-    # 1. Primary: Use gTTS (Google Voice) - 100% reliable on Linux/Docker
+    # 1. Secondary Fallback: Use gTTS with British Male Accent (co.uk)
     try:
         from gtts import gTTS
         mp3_path = _audio_root() / f"{uuid4()}.mp3"
-        tts = gTTS(text=text, lang="en")
+        tts = gTTS(text=text, lang="en", tld="co.uk")
         tts.save(str(mp3_path))
         return mp3_path.name
     except Exception as exc1:
         print(f"gTTS synthesis warning: {exc1}")
 
-    # 2. Fallback: Use pyttsx3 offline engine
+    # 2. Tertiary Fallback: Use pyttsx3 offline engine (Male Voice)
     try:
         wav_path = _audio_root() / f"{uuid4()}.wav"
         engine = pyttsx3.init()
-        engine.setProperty("rate", 180)
+        engine.setProperty("rate", 200)
+        voices = engine.getProperty("voices")
+        if voices:
+            engine.setProperty("voice", voices[0].id)
         engine.save_to_file(text, str(wav_path))
         engine.runAndWait()
         return wav_path.name
     except Exception as exc2:
         print(f"pyttsx3 synthesis warning: {exc2}")
         return ""
+
 
 
 
