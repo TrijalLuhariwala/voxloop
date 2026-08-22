@@ -50,7 +50,7 @@ def draft_response(state: WorkflowState) -> dict[str, str]:
         SystemMessage(
             content=(
                 f"You are a {state['selected_topic']} voice assist agent in an ongoing, multi-turn conversation. "
-                "Respond to the user in a way that is accurate, relevant, empathetic, clear, and policy-compliant. "
+                "Respond to the user in a way that is accurate, clear, and policy-compliant. "
                 "Use the prior conversation history to maintain context and continuity across turns."
             )
         ),
