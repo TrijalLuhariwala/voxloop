@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "VoxLoop API"
-    database_url: str = Field(default="sqlite:///./voxloop.db")
+    database_url: str = Field(default="sqlite:///./data/voxloop.db")
     mistral_api_key_primary: str = Field(default="")
     mistral_api_key_critic: str = Field(default="")
     mistral_model_primary: str = Field(default="mistral-small-latest")

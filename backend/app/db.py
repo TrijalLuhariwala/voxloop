@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy import DateTime, Integer, String, Text, create_engine
+
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from .config import settings
@@ -28,6 +30,12 @@ class ConversationRun(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+if settings.database_url.startswith("sqlite:///"):
+    raw_path = settings.database_url.replace("sqlite:///", "")
+    if raw_path and raw_path != ":memory:":
+        Path(raw_path).parent.mkdir(parents=True, exist_ok=True)
+
+
 engine = create_engine(
     settings.database_url,
     connect_args={"check_same_thread": False}
@@ -35,6 +43,7 @@ engine = create_engine(
     else {},
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
 
 
 def init_db() -> None:

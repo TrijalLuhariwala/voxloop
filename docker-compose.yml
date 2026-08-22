@@ -11,7 +11,8 @@ services:
       - ./backend/.env
     volumes:
       - voxloop_data:/app/generated_audio
-      - voxloop_db:/app/voxloop.db
+      - voxloop_db:/app/data
+
 
   frontend:
     build:
