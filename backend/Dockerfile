@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     espeak \
     libespeak1 \
     build-essential \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 

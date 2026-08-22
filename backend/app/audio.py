@@ -42,17 +42,7 @@ async def transcribe_audio(audio_path: Path) -> str:
 
 
 def _synthesize_sync(text: str) -> str:
-    # 1. Secondary Fallback: Use gTTS with British Male Accent (co.uk)
-    try:
-        from gtts import gTTS
-        mp3_path = _audio_root() / f"{uuid4()}.mp3"
-        tts = gTTS(text=text, lang="en", tld="co.uk")
-        tts.save(str(mp3_path))
-        return mp3_path.name
-    except Exception as exc1:
-        print(f"gTTS synthesis warning: {exc1}")
-
-    # 2. Tertiary Fallback: Use pyttsx3 offline engine (Male Voice)
+    # Offline fallback: Use pyttsx3 offline engine (Male Voice)
     try:
         wav_path = _audio_root() / f"{uuid4()}.wav"
         engine = pyttsx3.init()
@@ -63,27 +53,35 @@ def _synthesize_sync(text: str) -> str:
         engine.save_to_file(text, str(wav_path))
         engine.runAndWait()
         return wav_path.name
-    except Exception as exc2:
-        print(f"pyttsx3 synthesis warning: {exc2}")
+    except Exception as exc:
+        print(f"pyttsx3 synthesis warning: {exc}", flush=True)
         return ""
 
 
-
-
-
 async def synthesize_speech(text: str) -> str:
-    # 1. Primary: Use edge-tts (Natural Neural Male Voice with +20% speed)
+    # 1. Primary: edge-tts Natural US Male Voice (en-US-GuyNeural)
     try:
         import edge_tts
         mp3_path = _audio_root() / f"{uuid4()}.mp3"
         communicate = edge_tts.Communicate(text, voice="en-US-GuyNeural", rate="+20%")
         await communicate.save(str(mp3_path))
         return mp3_path.name
-    except Exception as exc:
-        print(f"edge-tts synthesis warning: {exc}")
+    except Exception as exc1:
+        print(f"edge-tts GuyNeural failed: {exc1}", flush=True)
 
-    # 2. Fallback: gTTS / pyttsx3
+    # 2. Secondary: edge-tts Deep Male Voice (en-US-ChristopherNeural)
+    try:
+        import edge_tts
+        mp3_path = _audio_root() / f"{uuid4()}.mp3"
+        communicate = edge_tts.Communicate(text, voice="en-US-ChristopherNeural", rate="+20%")
+        await communicate.save(str(mp3_path))
+        return mp3_path.name
+    except Exception as exc2:
+        print(f"edge-tts ChristopherNeural failed: {exc2}", flush=True)
+
+    # 3. Tertiary fallback: pyttsx3 offline engine (Male Voice)
     return await asyncio.to_thread(_synthesize_sync, text)
+
 
 
 
