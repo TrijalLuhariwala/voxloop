@@ -9,5 +9,7 @@ langchain-mistralai==1.1.6
 faster-whisper==1.2.0
 pyttsx3==2.99
 gTTS==2.5.4
+edge-tts==6.1.12
 pywin32==311; sys_platform == 'win32'
+
 

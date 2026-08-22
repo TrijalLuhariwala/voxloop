@@ -68,7 +68,19 @@ def _synthesize_sync(text: str) -> str:
 
 
 async def synthesize_speech(text: str) -> str:
+    # 1. Primary: Use edge-tts (Natural Neural Male Voice with +20% speed)
+    try:
+        import edge_tts
+        mp3_path = _audio_root() / f"{uuid4()}.mp3"
+        communicate = edge_tts.Communicate(text, voice="en-US-GuyNeural", rate="+20%")
+        await communicate.save(str(mp3_path))
+        return mp3_path.name
+    except Exception as exc:
+        print(f"edge-tts synthesis warning: {exc}")
+
+    # 2. Fallback: gTTS / pyttsx3
     return await asyncio.to_thread(_synthesize_sync, text)
+
 
 
 def save_uploaded_audio(data: bytes, suffix: str = ".webm") -> Path:
